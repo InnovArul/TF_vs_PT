@@ -45,6 +45,7 @@ class Logistic:
         else:
             masked_logits = torch.masked_select(scaled_logits, one_hot)
             ce = -torch.log(masked_logits)
+
         return ce
 
     def accuracy(self, y_hat, Y):

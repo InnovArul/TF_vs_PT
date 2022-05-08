@@ -68,7 +68,6 @@ class TrainModel:
             losses = []
             accuracies = []
             for X, Y in train_data:
-                X = X / 255
                 y_hat = self.logistic_regression(X, W, b)
                 one_hot = torch.nn.functional.one_hot(Y, 43).bool()
                 loss = self.func.cross_entropy(y_hat, one_hot)
@@ -77,6 +76,7 @@ class TrainModel:
                 self.sgd([W, b], grads, lr, X.shape[0])
                 acc = self.func.accuracy(y_hat, Y)
                 accuracies.append(acc)
+
         return np.mean(losses), np.mean(accuracies)
 
     def logistic_regression(self, X, W, b):
@@ -87,12 +87,13 @@ class TrainModel:
         else:
             flatten_X = X.reshape((-1, W.shape[0]))
             out = self.func.softmax(torch.matmul(flatten_X,W) + b)
+        
         return out
 
     def val_loop(self, data, W, b):
         accuracy = []
         for X, Y in data:
-            X = X / 255.0
+            if self.library == "tf": X = X / 255.0
             out = self.logistic_regression(X, W, b)
             acc = self.func.accuracy(out, Y)
             accuracy.append(acc)
@@ -114,7 +115,7 @@ def logger(mod_name):
 if __name__ == "__main__":
     logger = logger(__name__)
     lib = "tf"
-    train_set, val_set = load_imagefolder("../workspace_7/GTSRB/Final_Training/Images/", 0.1, lib)
+    train_set, val_set = load_imagefolder("GTSRB/Final_Training/Images/", 0.1, lib)
     train_class = TrainModel(lib)
     epochs = 10
     lr = 0.1
@@ -134,15 +135,11 @@ if __name__ == "__main__":
         num_inputs = torch.prod(torch.tensor(X.shape)[1:], 0)
         W = torch.normal(mean=0, std=0.01, size=(num_inputs, num_outputs), requires_grad=True)
         b = torch.zeros(num_outputs, requires_grad=True)
+
     for epoch in range(1, epochs+1):
-
         logger.info('Epoch {}'.format(epoch))
-
         loss, acc = train_class.train_loop(lr, train_set, W, b)
-
         logger.info('Mean training loss: {:1f}, mean training accuracy {:1f}'.format(loss, acc))
 
         val_acc = train_class.val_loop(val_set, W, b)
-
         logger.info('Mean validation accuracy {:1f}'.format(val_acc))
-

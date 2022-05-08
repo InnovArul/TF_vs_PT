@@ -33,7 +33,7 @@ def load_imagefolder(dir, val_size=0.1, library = "tf"):
         # loads images as PIL objects which would later on trigger errors.
         transform = transforms.Compose([transforms.Resize((32, 32)),
                                         transforms.ToTensor(),
-                                        transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))])
+                                        ])
         train_images = datasets.ImageFolder(dir, transform=transform)
 
         # following lines are quite common and shuffle the images based on their indices
